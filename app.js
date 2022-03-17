@@ -24,9 +24,28 @@ const projectName = "rooms-app";
 
 app.locals.appTitle = `${capitalized(projectName)} created with IronLauncher`;
 
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+
+app.use(
+  session({
+    secret: process.env.SESSION_KEY,
+    saveUninitialized: false,
+    resave: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI || "mongodb://localhost/rooms-app",
+      ttl: 24 * 60 * 60,
+    }),
+  })
+);
+
 // 👇 Start handling routes here
 const index = require("./routes/index.routes");
 app.use("/", index);
+app.use(require("./routes/auth.routes"));
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);
